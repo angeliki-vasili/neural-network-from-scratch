@@ -1,91 +1,60 @@
-import numpy as np 
+import numpy as np
+from sklearn.model_selection import train_test_split
+
 from fully_connected_nn import FullyConnectedNN
-from generate_datasets import generate_binary_problem
+from generate_datasets import (
+    generate_binary_problem,
+    generate_flower_problem,
+)
 from helpers import plot_decision_boundary
 
-#data generation
-C=np.array([[0,8],
-            [0,8]])
 
-X,y = generate_binary_problem(C,N=500)
+def run_experiment(X, y, name):
+    y = y.reshape(-1, 1)
 
-#split 70/30
-split = int(0.7* X.shape[0])
-X_train,X_test= X[:split],X[split:]
-y_train,y_test= y[:split], y[split:]
+    # Keep both classes in the training and test sets.
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.3,
+        random_state=42,
+        stratify=y.ravel(),
+    )
 
-#reshape labels
-y_train= y_train.reshape(-1,1)
-y_test= y_test.reshape(-1,1)
+    model = FullyConnectedNN(
+        input_size=2,
+        hidden_size=3,
+        lr=0.01,
+    )
 
-#model generation
-model= FullyConnectedNN(input_size=2,hidden_size=3,lr=0.01)
+    model.fit(
+        X_train,
+        y_train,
+        iterations=5000,
+        show_step=500,
+    )
 
-#training
-model.fit(X_train,y_train,iterations=5000,show_step=500)
+    predictions = model.predict(X_test)
+    accuracy = np.mean(predictions == y_test)
 
-#predictions 
-y_pred= model.predict(X_test)
+    print(f"\n{name}")
+    print(f"Training samples: {len(X_train)}")
+    print(f"Test samples: {len(X_test)}")
+    print(f"Test accuracy: {accuracy:.4f}")
 
-#accuracy
-accuracy= np.mean(y_pred == y_test)
-print("Accuracy:",accuracy)
-
-#plot decision boundary
-plot_decision_boundary(model.predict,X,y)
-print("\n ---SECOND DATASET---")
-C2=np.array([[0,2],
-             [0,2]])
-
-X2,y2 =generate_binary_problem(C2,N=500)
-
-#spilt
-spilt=int(0.7*X2.shape[0])
-X_train2,X_test2=X2[:spilt],X2[spilt:]
-y_train2,y_test2=y2[:split],y2[spilt:]
-
-y_train2= y_train2.reshape(-1,1)
-y_test2= y_test2.reshape(-1,1)
-
-#new model 
-model2=FullyConnectedNN(input_size=2,hidden_size=3,lr=0.01)
-
-#training 
-model2.fit(X_train2,y_train2,iterations=5000,show_step=500)
-
-#accuracy 
-y_pred2= model2.predict(X_test2)
-accuracy2= np.mean(y_pred2==y_test2)
-
-print("Accuracy (harder):",accuracy2)
-
-#plot 
-plot_decision_boundary(model2.predict,X2,y2)
-
-print("\n ---FLOWER PROBLEM---")
-from generate_datasets import generate_flower_problem
-#generate data
-Xf,yf =generate_flower_problem()
-Xf= Xf.T
-yf= yf.reshape(-1,1)
-
-#split into train/test(70/30)
-split = int(0.7* Xf.shape[0])
-X_train_f,X_test_f= Xf[:spilt],Xf[spilt:]
-y_train_f,y_test_f= yf[:spilt],yf[spilt:]
+    plot_decision_boundary(model.predict, X, y.ravel())
 
 
-#create model 
-model_f= FullyConnectedNN(input_size=2, hidden_size=3, lr=0.01)
+if __name__ == "__main__":
+    np.random.seed(42)
 
-#train model 
-model_f.fit(X_train_f,y_train_f,iterations=5000,show_step=500)
+    centers = np.array([[0, 8], [0, 8]])
+    X, y = generate_binary_problem(centers, N=500)
+    run_experiment(X, y, "First dataset")
 
-#make predictions
-y_pred_f= model_f.predict(X_test_f)
+    centers = np.array([[0, 2], [0, 2]])
+    X, y = generate_binary_problem(centers, N=500)
+    run_experiment(X, y, "Second dataset")
 
-#compute accuracy
-acc_f = np.mean(y_pred_f == y_test_f)
-print("Accuracy (flower):", acc_f)
-plot_decision_boundary(model_f.predict,Xf,yf.ravel())
-
+    X, y = generate_flower_problem()
+    run_experiment(X.T, y, "Flower dataset")
