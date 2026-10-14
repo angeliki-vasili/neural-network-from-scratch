@@ -35,7 +35,9 @@ python experiment3.py
 The scripts report classification accuracy and execution time.
 
 ## Limitations
-The synthetic dataset experiment currently uses an ordered train/test split. Shuffling or a stratified split is needed for more reliable evaluation.
+The synthetic experiments use a stratified 70/30 train-test split.
+Performance on the flower dataset is limited with the current
+three-neuron hidden layer and training settings.
 
 ## Context
 University coursework in Informatics and Telematics at Harokopio University.
